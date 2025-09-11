@@ -92,21 +92,24 @@ const deleteTemplate = (req, res) => {
 };
 
 const updateTemplate = (req, res) => {
-    console.log('Route params:', req.params);
-    console.log('Request body:', req.body);
-    console.log('Content-Type:', req.headers['content-type']);
-  const templateId = req.params.id;
+    const templateId = req.params.id;
     upload.single('new_file')(req, res, (err) => {
         if (err) {
             console.error('File upload error:', err);
             return res.status(400).json({ error: err.message });
         }
-
+        console.log('Route params:', req.params);
+        console.log('Request body:', req.body);
+        console.log('Content-Type:', req.headers['content-type']);
+        // console.log(req)
+        // return
         if (req.file) {
             console.log('Update request body:', req.body); // Debug log
             const sql = "UPDATE template SET subject = ? , cover_letter = ?, file = ? WHERE id = ?";
             const { subject, cover_letter } = req.body;
-            db.run(sql, [subject, cover_letter, req.file.path, templateId], (err) => {
+            const new_path = req.file ? req.file.path : null;
+            console.log(sql)
+            db.run(sql, [subject, cover_letter,new_path, templateId], (err) => {
                 if (err) {
                     return res.status(500).json({ error: err.message });
                 }
@@ -128,7 +131,7 @@ const updateTemplate = (req, res) => {
 
 // Fetch all templates
 const getTemplates = (req, res) => {
-    const sql = "SELECT id,subject FROM template WHERE deleted = 0 ORDER BY id DESC";
+    const sql = "SELECT id,subject,file FROM template WHERE deleted = 0 ORDER BY id DESC";
     db.all(sql, [], (err, rows) => {
         if (err) {
             return res.status(500).json({ error: err.message });
